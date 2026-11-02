@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import App from './App';
@@ -6,7 +7,7 @@ describe('ORDER IT homepage', () => {
   it('renders the storefront, departments, categories, and popular products', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /good thingscome right away/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /good things\s*come right away/i })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Shop departments' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Shop departments' })).toHaveTextContent('Grocery');
     expect(screen.getByRole('region', { name: 'Browse product categories' })).toBeInTheDocument();
@@ -32,7 +33,7 @@ describe('ORDER IT homepage', () => {
     expect(screen.getByRole('heading', { name: 'Classic White Eggs' })).toBeInTheDocument();
   });
 
-  it('searches products by name and shows an empty state for unmatched queries', () => {
+  it('searches by product name and presents an empty state for unmatched queries', () => {
     render(<App />);
     const search = screen.getByRole('searchbox', { name: 'Search products' });
 

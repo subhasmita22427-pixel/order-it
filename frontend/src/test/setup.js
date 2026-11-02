@@ -4,7 +4,7 @@ import { afterEach, beforeEach } from 'vitest';
 
 Object.defineProperty(Element.prototype, 'scrollIntoView', {
   configurable: true,
-  value: () => {},
+  value() {},
 });
 
 beforeEach(() => {

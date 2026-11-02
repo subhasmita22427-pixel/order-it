@@ -13,6 +13,7 @@ function OrderHistory({ orders, onClose, onReorder, onPrint }) {
               <article className="order-card" key={order.id}>
                 <div className="order-card-heading"><strong>Order {order.id}</strong><span>{new Date(order.createdAt).toLocaleDateString()}</span></div>
                 <p>{order.items.map((item) => `${item.name} × ${item.quantity}`).join(', ')}</p>
+                <p className="order-delivery-summary"><strong>Delivery:</strong> {order.delivery?.summary || 'Deliver now'}</p>
                 <div className="order-card-footer"><span>₹{order.total} · {order.paymentMethod === 'cod' ? 'COD · Payment pending' : order.paymentMethod}</span><div><button type="button" onClick={() => onPrint(order)}>Receipt</button><button type="button" onClick={() => onReorder(order)}>Order again</button></div></div>
               </article>
             ))}

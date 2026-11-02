@@ -16,6 +16,7 @@ function OrderReceipt({ order, onClose }) {
           <div className="checkout-total"><span>Amount payable</span><strong>₹{order.total}</strong></div>
         </div>
         <p><strong>Payment: {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}</strong><br />Status: {order.paymentStatus}</p>
+        <p className="receipt-delivery"><strong>Delivery schedule</strong><br />{order.delivery?.summary || 'Deliver now'}</p>
         <p className="receipt-address"><strong>Deliver to</strong><br />{order.address?.recipient} · +91 {order.address?.phone}<br />{order.address?.house}, {order.address?.street}, {order.address?.locality}, {order.address?.city} {order.address?.pin}</p>
         <p className="checkout-security-note">Demo order only. This is not a tax invoice or proof of a real delivery or payment.</p>
         <div className="receipt-actions no-print"><button className="secondary-button" type="button" onClick={onClose}>Continue shopping</button><button className="primary-button" type="button" onClick={() => window.print()}>Print receipt</button></div>

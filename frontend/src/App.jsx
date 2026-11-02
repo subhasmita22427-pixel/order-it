@@ -12,6 +12,7 @@ import ProductCard from './components/ProductCard';
 import TopCategories from './components/TopCategories';
 import { categories as productCategories, products } from './data/products';
 import { filterProducts, getCheckoutTotals, updateCart as applyCartChange } from './utils/shop';
+import { getDeliverySummary, isValidDeliveryPreference } from './utils/delivery';
 
 const readStoredValue = (key, fallback) => {
   try {
@@ -48,6 +49,7 @@ function App() {
   const [pendingIntent, setPendingIntent] = useState(null);
   const [addressCheckout, setAddressCheckout] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState('');
+  const [deliveryPreference, setDeliveryPreference] = useState({ type: 'now', date: '', timeSlot: '' });
   const [toast, setToast] = useState('');
   const [orders, setOrders] = useState(() => user ? readStoredValue(`order-it-orders-${user.mobile}`, []) : []);
   const orderInProgress = useRef(false);
@@ -227,15 +229,24 @@ function App() {
     setSelectedCategory(category ? products.find((product) => product.category === categoryId)?.topCategory || null : null);
   };
 
-  const placeDemoOrder = () => {
+  const placeDemoOrder = ({ deliveryPreference: selectedDeliveryPreference }) => {
     if (orderInProgress.current || !user || !selectedAddress || cart.length === 0) return;
+    if (!isValidDeliveryPreference(selectedDeliveryPreference)) {
+      setToast('Choose a valid future delivery date and time slot.');
+      return;
+    }
     orderInProgress.current = true;
     const totals = getCheckoutTotals(cart);
+    const delivery = {
+      ...selectedDeliveryPreference,
+      summary: getDeliverySummary(selectedDeliveryPreference),
+    };
     const order = {
       id: `OI-${Date.now().toString().slice(-8)}`,
       createdAt: new Date().toISOString(),
       items: cart.map((item) => ({ ...item })),
       address: { ...selectedAddress },
+      delivery,
       ...totals,
       paymentMethod: 'cod',
       paymentStatus: 'Pending',
@@ -243,6 +254,7 @@ function App() {
     };
     setOrders((current) => [order, ...current]);
     setCart([]);
+    setDeliveryPreference({ type: 'now', date: '', timeSlot: '' });
     setShowCheckout(false);
     setReceiptOrder(order);
     setToast('Demo order placed. Payment is pending; no real delivery or payment was created.');
@@ -383,7 +395,7 @@ function App() {
       {showAuth && <AuthModal accounts={accounts} onClose={() => { setShowAuth(false); setPendingIntent(null); }} onAuthenticated={authenticate} />}
       {showAddresses && user && <AddressSelector account={user} selectedAddressId={selectedAddressId} onSelect={changeSelectedAddress} onAccountChange={saveAccount} onClose={() => setShowAddresses(false)} onCheckout={addressCheckout ? completeCheckoutAddress : undefined} />}
       {showCart && <Cart items={cart} onClose={() => setShowCart(false)} onIncrease={(item) => updateCart(item, 1)} onDecrease={(item) => updateCart(item, -1)} onRemove={(id) => setCart((current) => current.filter((item) => item.id !== id))} onCheckout={handleCheckout} notice={checkoutNotice} selectedAddress={selectedAddress} />}
-      {showCheckout && <Checkout items={cart} address={selectedAddress} onClose={() => setShowCheckout(false)} onChangeAddress={() => { setShowCheckout(false); setAddressCheckout(true); setShowAddresses(true); }} onPlaceOrder={placeDemoOrder} />}
+      {showCheckout && <Checkout items={cart} address={selectedAddress} deliveryPreference={deliveryPreference} onDeliveryPreferenceChange={setDeliveryPreference} onClose={() => setShowCheckout(false)} onChangeAddress={() => { setShowCheckout(false); setAddressCheckout(true); setShowAddresses(true); }} onPlaceOrder={placeDemoOrder} />}
       {showOrders && user && <OrderHistory orders={orders} onClose={() => setShowOrders(false)} onReorder={reorder} onPrint={setReceiptOrder} />}
       {receiptOrder && <OrderReceipt order={receiptOrder} onClose={() => setReceiptOrder(null)} />}
       {profileView && user && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setProfileView('')}><section className="dialog profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title"><button className="dialog-close" type="button" aria-label="Close profile" onClick={() => setProfileView('')}>×</button><p className="eyebrow">Your account</p><h2 id="profile-dialog-title">{profileView}</h2><div className="profile-details"><p><span>Name</span><strong>{user.name || 'Not provided'}</strong></p><p><span>Mobile</span><strong>+91 {user.mobile}</strong></p><p><span>Saved addresses</span><strong>{user.addresses?.length || 0}</strong></p></div><p className="maps-note">This account is stored in this browser for demonstration only. Account settings and authentication are not connected to a backend.</p><button className="primary-button full-width" type="button" onClick={() => setProfileView('')}>Done</button></section></div>}
