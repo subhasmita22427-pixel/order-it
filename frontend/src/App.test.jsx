@@ -1,13 +1,14 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import App from './App';
 
 describe('ORDER IT homepage', () => {
-  it('renders the storefront, categories, and popular products', () => {
+  it('renders the storefront, departments, categories, and popular products', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: /good things\s*come right away/i })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Shop departments' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Shop departments' })).toHaveTextContent('Grocery');
     expect(screen.getByRole('region', { name: 'Browse product categories' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Popular right now' })).toBeInTheDocument();
@@ -36,11 +37,12 @@ describe('ORDER IT homepage', () => {
     render(<App />);
     const search = screen.getByRole('searchbox', { name: 'Search products' });
 
-    fireEvent.change(search, { target: { value: 'banana' } });
+    fireEvent.change(search, { target: { value: '  BANANA ' } });
 
-    expect(screen.getByRole('heading', { name: /Results for.*banana/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Results for “\s*BANANA\s*”/ })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Robusta Banana' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Fresh Avocado' })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Browse product categories' })).getByRole('button', { name: /fruits & vegetables/i })).toBeInTheDocument();
 
     fireEvent.change(search, { target: { value: 'not a real product' } });
 
